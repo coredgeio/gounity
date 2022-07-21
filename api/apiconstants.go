@@ -113,4 +113,5 @@ const (
 	ReplicationSessionAction = "replicationSession"
 	CreateCGAction           = "createConsistencyGroup"
 	ModifyCGAction           = "modifyConsistencyGroup/%s"
+	ExecuteReplicationAction = "action"
 )

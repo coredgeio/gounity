@@ -557,7 +557,6 @@ func (f *Filesystem) ExpandFilesystem(ctx context.Context, filesystemID string, 
 }
 
 func (f *Filesystem) FindFileSystemGroupByPrefix(ctx context.Context, prefix string) (*types.ListFileSystem, error) {
-	//log := util.GetRunIDLogger(ctx)
 	if len(prefix) == 0 {
 		return nil, fmt.Errorf("Filesystem prefix cannot be empty")
 	}
@@ -569,9 +568,21 @@ func (f *Filesystem) FindFileSystemGroupByPrefix(ctx context.Context, prefix str
 	if err != nil {
 		return nil, err
 	}
-	// if len(listFileSystems.Filesystems) == 0 {
-	// 	log.Info("List of File Systems is empty")
-	// 	return nil, nil
-	// }
 	return listFileSystems, nil
 }
+
+func (f *Filesystem) FindFileSystemGroupByPrefixWithFields(ctx context.Context, prefix string) ([]types.Filesystem, error) {
+	if len(prefix) == 0 {
+		return nil, fmt.Errorf("Filesystem prefix cannot be empty")
+	}
+
+	filter := fmt.Sprintf("name lk %s", "\""+prefix+"%\"")
+	queryURI := fmt.Sprintf(api.UnityInstancesFilterWithFields, api.FileSystemAction, FileSystemDisplayFields, url.QueryEscape(filter))
+	fileSystemResp := &types.ListFileSystem{}
+	err := f.client.executeWithRetryAuthenticate(ctx, http.MethodGet, queryURI, nil, fileSystemResp)
+	if err != nil {
+		return nil, err
+	}
+	return fileSystemResp.Filesystems, nil
+}
+

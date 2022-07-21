@@ -4,11 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+
 	"github.com/dell/gounity/api"
 	"github.com/dell/gounity/types"
 	"github.com/dell/gounity/util"
-	"net/http"
-	"net/url"
+)
+
+type ActionType string
+
+const (
+	RS_ACTION_FAILOVER  ActionType = "failover"
+	RS_ACTION_REPROTECT ActionType = "reprotect"
+	RS_ACTION_RESUME    ActionType = "resume"
+	RS_ACTION_PAUSE     ActionType = "pause"
+	RS_ACTION_SYNC      ActionType = "sync"
+	RS_ACTION_FAILBACK  ActionType = "failback"
 )
 
 type Replication struct {
@@ -163,3 +175,30 @@ func (r *Replication) DeleteReplicationSessionById(ctx context.Context, sessionI
 
 	return nil
 }
+
+func (r *Replication) ExecuteActionOnReplicationSession(ctx context.Context, sessionId string, actionType ActionType) error {
+	log := util.GetRunIDLogger(ctx)
+	if len(sessionId) == 0 {
+		return errors.New("Replication session Id cannot be empty")
+	}
+	actionErr := r.client.executeWithRetryAuthenticate(ctx, http.MethodPost, fmt.Sprintf(api.UnityAPIGetResourceURI, api.ReplicationSessionAction, sessionId+"/"+api.ExecuteReplicationAction+"/"+string(actionType)), nil, nil)
+	if actionErr != nil {
+		return fmt.Errorf("execute action on the replication session %s failed. Error: %v", sessionId, actionErr)
+	}
+	log.Debugf("Action on the RS %s was executed successfully", sessionId)
+	return nil
+}
+
+func (r *Replication) FailoverActionOnRelicationSessiion(ctx context.Context, sessionId string, actionType ActionType, failoverParam types.FailOverParams) error {
+	log := util.GetRunIDLogger(ctx)
+	if len(sessionId) == 0 {
+		return errors.New("Replication session Id cannot be empty")
+	}
+	actionErr := r.client.executeWithRetryAuthenticate(ctx, http.MethodPost, fmt.Sprintf(api.UnityAPIGetResourceURI, api.ReplicationSessionAction, sessionId+"/"+api.ExecuteReplicationAction+"/"+string(actionType)), failoverParam, nil)
+	if actionErr != nil {
+		return fmt.Errorf("execute action on the replication session %s failed. Error: %v", sessionId, actionErr)
+	}
+	log.Debugf("Action on the RS %s was executed successfully", sessionId)
+	return nil
+}
+
