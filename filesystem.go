@@ -572,6 +572,7 @@ func (f *Filesystem) FindFileSystemGroupByPrefix(ctx context.Context, prefix str
 	return listFileSystems, nil
 }
 
+//FindFileSystemGroupByPrefixWithFields get list of file systems of one volume group
 func (f *Filesystem) FindFileSystemGroupByPrefixWithFields(ctx context.Context, prefix string) ([]types.Filesystem, error) {
 	if len(prefix) == 0 {
 		return nil, fmt.Errorf("Filesystem prefix cannot be empty")

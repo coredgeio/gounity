@@ -367,3 +367,8 @@ type CreateReplicationSessionParam struct {
 	RemoteSystem         *RemoteSystemContent `json:"remoteSystem,omitempty"`
 	OverwriteDestination bool                 `json:"overwriteDestination,omitempty"`
 }
+
+type FailOverParams struct {
+	Sync bool `json:"sync"`
+	//Force bool `json:"force"`
+}

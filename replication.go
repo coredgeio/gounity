@@ -10,6 +10,7 @@ import (
 	"github.com/dell/gounity/api"
 	"github.com/dell/gounity/types"
 	"github.com/dell/gounity/util"
+	log "github.com/sirupsen/logrus"
 )
 
 type ActionType string
@@ -120,7 +121,7 @@ func (r *Replication) FindReplicationSessionBySrcResourceID(ctx context.Context,
 	if len(srcResourceID) == 0 {
 		return nil, fmt.Errorf("SrcResourceID shouldn't be empty")
 	}
-	filter := fmt.Sprintf("srcResourceID eq %s", "\""+srcResourceID+"\"")
+	filter := fmt.Sprintf("srcResourceId eq \"%s\" or dstResourceId eq \"%s\"", srcResourceID, srcResourceID)
 	queryURI := fmt.Sprintf(api.UnityInstancesFilterWithFields, api.ReplicationSessionAction, ReplicationSessionFields, url.QueryEscape(filter))
 	listReplSession := &types.ListReplicationSession{}
 	err := r.client.executeWithRetryAuthenticate(ctx, http.MethodGet, queryURI, nil, listReplSession)
@@ -128,6 +129,7 @@ func (r *Replication) FindReplicationSessionBySrcResourceID(ctx context.Context,
 		return nil, err
 	}
 	if len(listReplSession.ReplicationSessions) == 0 {
+		log.Info("List of replication sessions is empty")
 		return nil, nil
 	}
 	rs := &listReplSession.ReplicationSessions[0]
