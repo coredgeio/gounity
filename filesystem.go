@@ -556,6 +556,7 @@ func (f *Filesystem) ExpandFilesystem(ctx context.Context, filesystemID string, 
 	return f.client.executeWithRetryAuthenticate(ctx, http.MethodPost, fmt.Sprintf(api.UnityModifyFilesystemURI, filesystem.FileContent.StorageResource.ID), fsExpandReqParam, nil)
 }
 
+//FindFileSystemGroupByPrefix get list of file systems of one volume group
 func (f *Filesystem) FindFileSystemGroupByPrefix(ctx context.Context, prefix string) (*types.ListFileSystem, error) {
 	if len(prefix) == 0 {
 		return nil, fmt.Errorf("Filesystem prefix cannot be empty")
@@ -585,4 +586,3 @@ func (f *Filesystem) FindFileSystemGroupByPrefixWithFields(ctx context.Context, 
 	}
 	return fileSystemResp.Filesystems, nil
 }
-
