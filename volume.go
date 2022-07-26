@@ -56,6 +56,13 @@ type Volume struct {
 	client *Client
 }
 
+type VolumeInterface interface {
+	CreateLun(ctx context.Context, name, poolID, description string, size uint64, fastVPTieringPolicy int, hostIOLimitID string, isThinEnabled, isDataReductionEnabled bool) (*types.Volume, error)
+	FindHostIOLimitByName(ctx context.Context, hostIoPolicyName string) (*types.IoLimitPolicy, error)
+	NewVolume(client *Client) *Volume
+	FindVolumeByName(ctx context.Context, volName string) (*types.Volume, error)
+}
+
 //NewVolume function returns volume
 func NewVolume(client *Client) *Volume {
 	return &Volume{client}
