@@ -5,7 +5,6 @@ package mocks
 import (
 	context "context"
 
-	gounity "github.com/dell/gounity"
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/dell/gounity/types"
@@ -83,22 +82,6 @@ func (_m *VolumeInterface) FindVolumeByName(ctx context.Context, volName string)
 	}
 
 	return r0, r1
-}
-
-// NewVolume provides a mock function with given fields: client
-func (_m *VolumeInterface) NewVolume(client *gounity.Client) *gounity.Volume {
-	ret := _m.Called(client)
-
-	var r0 *gounity.Volume
-	if rf, ok := ret.Get(0).(func(*gounity.Client) *gounity.Volume); ok {
-		r0 = rf(client)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*gounity.Volume)
-		}
-	}
-
-	return r0
 }
 
 type mockConstructorTestingTNewVolumeInterface interface {
