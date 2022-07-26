@@ -68,6 +68,10 @@ func NewVolume(client *Client) *Volume {
 	return &Volume{client}
 }
 
+func InterfaceAssignment(vol *Volume) *Volume {
+	return vol
+}
+
 // CreateLun API create a Lun with the given arguments.
 // Pre-validations: 1. Length of the Lun name should be less than 63 characters.
 //                  2. Size of Lun should be in bytes.
