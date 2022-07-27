@@ -60,6 +60,7 @@ type VolumeInterface interface {
 	CreateLun(ctx context.Context, name, poolID, description string, size uint64, fastVPTieringPolicy int, hostIOLimitID string, isThinEnabled, isDataReductionEnabled bool) (*types.Volume, error)
 	FindHostIOLimitByName(ctx context.Context, hostIoPolicyName string) (*types.IoLimitPolicy, error)
 	FindVolumeByName(ctx context.Context, volName string) (*types.Volume, error)
+	InterfaceAssignment() *Volume
 }
 
 //NewVolume function returns volume
@@ -67,8 +68,8 @@ func NewVolume(client *Client) *Volume {
 	return &Volume{client}
 }
 
-func InterfaceAssignment(vol *Volume) *Volume {
-	return vol
+func (v *Volume) InterfaceAssignment() *Volume {
+	return v
 }
 
 // CreateLun API create a Lun with the given arguments.

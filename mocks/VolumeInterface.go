@@ -5,6 +5,7 @@ package mocks
 import (
 	context "context"
 
+	gounity "github.com/dell/gounity"
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/dell/gounity/types"
@@ -82,6 +83,22 @@ func (_m *VolumeInterface) FindVolumeByName(ctx context.Context, volName string)
 	}
 
 	return r0, r1
+}
+
+// InterfaceAssignment provides a mock function with given fields:
+func (_m *VolumeInterface) InterfaceAssignment() *gounity.Volume {
+	ret := _m.Called()
+
+	var r0 *gounity.Volume
+	if rf, ok := ret.Get(0).(func() *gounity.Volume); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gounity.Volume)
+		}
+	}
+
+	return r0
 }
 
 type mockConstructorTestingTNewVolumeInterface interface {
