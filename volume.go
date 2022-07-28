@@ -51,6 +51,8 @@ var ErrorCloningFailed = errors.New("volume Cloning Failed")
 //MarkVolumeForDeletion stores mark of volume deletion
 var MarkVolumeForDeletion = "csi-marked-vol-for-deletion"
 
+var MockVolAPIResp VolumeInterface
+
 //Volume structure
 type Volume struct {
 	client *Client
@@ -63,6 +65,21 @@ type VolumeInterface interface {
 	InterfaceAssignment() *Volume
 }
 
+type VolumeAssign interface {
+	InterfaceAssignment() VolumeInterface
+}
+
+type VolumeMock struct{}
+
+func (vm VolumeMock) InterfaceAssignment() VolumeInterface {
+	fmt.Println("I am in mock assignment")
+	return MockVolAPIResp
+}
+
+type VolumeWrapper struct {
+	Volume *Volume
+}
+
 //NewVolume function returns volume
 func NewVolume(client *Client) *Volume {
 	return &Volume{client}
@@ -70,6 +87,11 @@ func NewVolume(client *Client) *Volume {
 
 func (v *Volume) InterfaceAssignment() *Volume {
 	return v
+}
+
+func (v VolumeWrapper) InterfaceAssignment() VolumeInterface {
+	return v.Volume.InterfaceAssignment()
+
 }
 
 // CreateLun API create a Lun with the given arguments.
@@ -359,6 +381,7 @@ func (v *Volume) ExpandVolume(ctx context.Context, volumeID string, newSize uint
 
 //FindHostIOLimitByName - Find Host IO limit
 func (v *Volume) FindHostIOLimitByName(ctx context.Context, hostIoPolicyName string) (*types.IoLimitPolicy, error) {
+	fmt.Println("I am not yet mocked")
 	if len(hostIoPolicyName) == 0 {
 		return nil, errors.New("policy Name shouldn't be empty")
 	}
