@@ -202,7 +202,7 @@ func (r *Replication) ExecuteActionOnReplicationSession(ctx context.Context, ses
 }
 
 //FailoverActionOnRelicationSession failover action on replication session
-func (r *Replication) FailoverActionOnRelicationSessiion(ctx context.Context, sessionID string, actionType ActionType, failoverParam types.FailOverParams) error {
+func (r *Replication) FailoverActionOnRelicationSession(ctx context.Context, sessionID string, actionType ActionType, failoverParam types.FailOverParams) error {
 	log := util.GetRunIDLogger(ctx)
 	if len(sessionID) == 0 {
 		return errors.New("Replication session Id cannot be empty")
