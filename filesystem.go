@@ -64,9 +64,45 @@ var AttachedSnapshotsErrorCode = "0x6000c17"
 //MarkFilesystemForDeletion stores filesystem for deletion mark
 var MarkFilesystemForDeletion = "csi-marked-filesystem-for-deletion(do not remove this from description)"
 
+type FilesystemInterface interface {
+	FindFilesystemByName(ctx context.Context, filesystemName string) (*types.Filesystem, error)
+	FindFilesystemByID(ctx context.Context, filesystemID string) (*types.Filesystem, error)
+	GetFilesystemIDFromResID(ctx context.Context, filesystemResID string) (string, error)
+	CreateFilesystem(ctx context.Context, name, storagepool, description, nasServer string, size uint64, tieringPolicy, hostIOSize, supportedProtocol int, isThinEnabled, isDataReductionEnabled bool, isReplicationDestination bool) (*types.Filesystem, error)
+	DeleteFilesystem(ctx context.Context, filesystemID string) error
+	CreateNFSShare(ctx context.Context, name, path, filesystemID string, nfsShareDefaultAccess NFSShareDefaultAccess) (*types.Filesystem, error)
+	CreateNFSShareFromSnapshot(ctx context.Context, name, path, snapshotID string, nfsShareDefaultAccess NFSShareDefaultAccess) (*types.NFSShare, error)
+	ModifyNFSShareHostAccess(ctx context.Context, filesystemID, nfsShareID string, hostIDs []string, accessType AccessType) error
+	FindNFSShareByName(ctx context.Context, nfsSharename string) (*types.NFSShare, error)
+	FindNFSShareByID(ctx context.Context, nfsShareID string) (*types.NFSShare, error)
+	ModifyNFSShareCreatedFromSnapshotHostAccess(ctx context.Context, nfsShareID string, hostIDs []string, accessType AccessType) error
+	DeleteNFSShare(ctx context.Context, filesystemID, nfsShareID string) error
+	DeleteNFSShareCreatedFromSnapshot(ctx context.Context, nfsShareID string) error
+	FindNASServerByID(ctx context.Context, nasServerID string) (*types.NASServer, error)
+	ExpandFilesystem(ctx context.Context, filesystemID string, newSize uint64) error
+	FindFileSystemGroupByPrefix(ctx context.Context, prefix string) (*types.ListFileSystem, error)
+}
+
 //NewFilesystem function returns filesystem
 func NewFilesystem(client *Client) *Filesystem {
 	return &Filesystem{client}
+}
+
+type FilesystemAssign interface {
+	InterfaceAssignment() FilesystemInterface
+}
+
+type FilesystemWrapper struct {
+	Filesystem *Filesystem
+}
+
+func (f *Filesystem) InterfaceAssignment() *Filesystem {
+	return f
+}
+
+func (f FilesystemWrapper) InterfaceAssignment() FilesystemInterface {
+	return f.Filesystem.InterfaceAssignment()
+
 }
 
 //FindFilesystemByName - Find the Filesystem by it's name. If the Filesystem is not found, an error will be returned.
