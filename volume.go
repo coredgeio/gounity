@@ -69,13 +69,6 @@ type VolumeAssign interface {
 	InterfaceAssignment() VolumeInterface
 }
 
-type VolumeMock struct{}
-
-func (vm VolumeMock) InterfaceAssignment() VolumeInterface {
-	fmt.Println("I am in mock assignment")
-	return MockVolAPIResp
-}
-
 type VolumeWrapper struct {
 	Volume *Volume
 }
@@ -381,7 +374,6 @@ func (v *Volume) ExpandVolume(ctx context.Context, volumeID string, newSize uint
 
 //FindHostIOLimitByName - Find Host IO limit
 func (v *Volume) FindHostIOLimitByName(ctx context.Context, hostIoPolicyName string) (*types.IoLimitPolicy, error) {
-	fmt.Println("I am not yet mocked")
 	if len(hostIoPolicyName) == 0 {
 		return nil, errors.New("policy Name shouldn't be empty")
 	}
