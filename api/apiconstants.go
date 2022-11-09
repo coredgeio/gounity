@@ -25,6 +25,7 @@ const (
 	UnityAPIInstanceTypeResourcesWithFields = UnityAPIInstanceTypeResources + "?fields=%s"
 
 	UnityAPIInstancesURI = unityRootAPI + "/instances"
+	UnityApiPoolURI      = unityAPITypes + "/instances"
 
 	//UnityAPIGetResourceURI GETS RESOURCE BY RESOURCE ID {1}=type of resource, {2}=resource id
 	UnityAPIGetResourceURI = UnityAPIInstancesURI + "/%s/%s"

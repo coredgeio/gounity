@@ -131,6 +131,29 @@ type Content struct {
 	EarliestAPIVersion string `json:"earliestApiVersion"`
 }
 
+//pool info struct
+
+//StoragePoolInfo Struct to capture the Pool info response
+type StoragePoolInfo struct {
+	Base        string        `json:"@base"`
+	Updated     time.Time     `json:"updated"`
+	Links       []Link        `json:"links"`
+	Entriespool []Entriespool `json:"entries"`
+}
+
+//Entriespool Struct to capture Entries related to pool ids contains a list of Links.
+type Entriespool struct {
+	Base     string    `json:"@base"`
+	Updated  time.Time `json:"updated"`
+	Links    []Link    `json:"links"`
+	Contents Contents  `json:"content"`
+}
+
+//Content Struct to capture the pool id content.
+type Contents struct {
+	ID string `json:"id"`
+}
+
 //Host struct to capture host object
 type Host struct {
 	HostContent HostContent `json:"content"`

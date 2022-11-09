@@ -54,3 +54,16 @@ func (sp *Storagepool) FindStoragePoolByID(ctx context.Context, poolID string) (
 
 	return spResponse, nil
 }
+
+//FindStoragePoolByID - Find the volume by it's Id. If the volume is not found, an error will be returned.
+func (sp *Storagepool) ListStoragePool(ctx context.Context) (*types.StoragePoolInfo, error) {
+
+	spResponse := &types.StoragePoolInfo{}
+
+	err := sp.client.executeWithRetryAuthenticate(ctx, http.MethodGet, fmt.Sprintf(api.UnityApiPoolURI), nil, spResponse)
+	if err != nil {
+		return nil, fmt.Errorf("storage pools are not present in array : err: %v", err)
+	}
+
+	return spResponse, nil
+}
