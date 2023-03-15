@@ -17,12 +17,12 @@ type FilesystemInterface struct {
 }
 
 // CreateFilesystem provides a mock function with given fields: ctx, name, storagepool, description, nasServer, size, tieringPolicy, hostIOSize, supportedProtocol, isThinEnabled, isDataReductionEnabled, isReplicationDestination
-func (_m *FilesystemInterface) CreateFilesystem(ctx context.Context, name string, storagepool string, description string, nasServer string, size uint64, tieringPolicy int, hostIOSize int, supportedProtocol int, isThinEnabled bool, isDataReductionEnabled bool, isReplicationDestination bool) (*types.Filesystem, error) {
-	ret := _m.Called(ctx, name, storagepool, description, nasServer, size, tieringPolicy, hostIOSize, supportedProtocol, isThinEnabled, isDataReductionEnabled, isReplicationDestination)
+func (_m *FilesystemInterface) CreateFilesystem(ctx context.Context, name string, storagepool string, description string, nasServer string, size uint64, tieringPolicy int, hostIOSize int, supportedProtocol int, isThinEnabled bool, isDataReductionEnabled bool) (*types.Filesystem, error) {
+	ret := _m.Called(ctx, name, storagepool, description, nasServer, size, tieringPolicy, hostIOSize, supportedProtocol, isThinEnabled, isDataReductionEnabled)
 
 	var r0 *types.Filesystem
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, uint64, int, int, int, bool, bool, bool) *types.Filesystem); ok {
-		r0 = rf(ctx, name, storagepool, description, nasServer, size, tieringPolicy, hostIOSize, supportedProtocol, isThinEnabled, isDataReductionEnabled, isReplicationDestination)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, uint64, int, int, int, bool, bool) *types.Filesystem); ok {
+		r0 = rf(ctx, name, storagepool, description, nasServer, size, tieringPolicy, hostIOSize, supportedProtocol, isThinEnabled, isDataReductionEnabled)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*types.Filesystem)
@@ -30,8 +30,8 @@ func (_m *FilesystemInterface) CreateFilesystem(ctx context.Context, name string
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, uint64, int, int, int, bool, bool, bool) error); ok {
-		r1 = rf(ctx, name, storagepool, description, nasServer, size, tieringPolicy, hostIOSize, supportedProtocol, isThinEnabled, isDataReductionEnabled, isReplicationDestination)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, uint64, int, int, int, bool, bool) error); ok {
+		r1 = rf(ctx, name, storagepool, description, nasServer, size, tieringPolicy, hostIOSize, supportedProtocol, isThinEnabled, isDataReductionEnabled)
 	} else {
 		r1 = ret.Error(1)
 	}
