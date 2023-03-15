@@ -141,29 +141,6 @@ func (_m *FilesystemInterface) ExpandFilesystem(ctx context.Context, filesystemI
 	return r0
 }
 
-// FindFileSystemGroupByPrefix provides a mock function with given fields: ctx, prefix
-func (_m *FilesystemInterface) FindFileSystemGroupByPrefix(ctx context.Context, prefix string) (*types.ListFileSystem, error) {
-	ret := _m.Called(ctx, prefix)
-
-	var r0 *types.ListFileSystem
-	if rf, ok := ret.Get(0).(func(context.Context, string) *types.ListFileSystem); ok {
-		r0 = rf(ctx, prefix)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.ListFileSystem)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, prefix)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // FindFilesystemByID provides a mock function with given fields: ctx, filesystemID
 func (_m *FilesystemInterface) FindFilesystemByID(ctx context.Context, filesystemID string) (*types.Filesystem, error) {
 	ret := _m.Called(ctx, filesystemID)
