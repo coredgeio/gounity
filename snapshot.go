@@ -15,39 +15,70 @@
 package gounity
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"golang.org/x/net/context"
 
 	"github.com/dell/gounity/api"
 	"github.com/dell/gounity/types"
 	"github.com/dell/gounity/util"
 )
 
-//FilesystemAccessType is integer
+// FilesystemAccessType is integer
 type FilesystemAccessType int
 
-//FilesystemAccessType constants
+// FilesystemAccessType constants
 const (
 	BlockAccessType      FilesystemAccessType = 0 //Parameter not applicable for block
 	CheckpointAccessType FilesystemAccessType = 1 //Checkpoint access to enable access through a .ckpt folder in the file system.
 	ProtocolAccessType   FilesystemAccessType = 2 //Protocol access to enable access through a file share.
 )
 
-//SnapshotNotFoundErrorCode stores snapshot not found error code
+// SnapshotNotFoundErrorCode stores snapshot not found error code
 var SnapshotNotFoundErrorCode = "0x7d13005"
 
-//ErrorSnapshotNotFound stores Snapshot not found error
+// ErrorSnapshotNotFound stores Snapshot not found error
 var ErrorSnapshotNotFound = errors.New("Unable to find filesystem")
 
-//Snapshot structure
+// Snapshot structure
 type Snapshot struct {
 	client *Client
 }
 
-//NewSnapshot function returns snapshot
+type SnapshotInterface interface {
+	CreateSnapshot(ctx context.Context, storageResourceID, snapshotName, description, retentionDuration string) (*types.Snapshot, error)
+	CreateSnapshotWithFsAccesType(ctx context.Context, storageResourceID, snapshotName, description, retentionDuration string, filesystemAccessType FilesystemAccessType) (*types.Snapshot, error)
+	DeleteFilesystemAsSnapshot(ctx context.Context, snapshotID string, sourceFs *types.Filesystem) error
+	DeleteSnapshot(ctx context.Context, snapshotID string) error
+	ListSnapshots(ctx context.Context, startToken int, maxEntries int, sourceVolumeID, snapshotID string) ([]types.Snapshot, int, error)
+	FindSnapshotByName(ctx context.Context, snapshotName string) (*types.Snapshot, error)
+	FindSnapshotByID(ctx context.Context, snapshotID string) (*types.Snapshot, error)
+	ModifySnapshotAutoDeleteParameter(ctx context.Context, snapshotID string) error
+	CopySnapshot(ctx context.Context, sourceSnapshotID, name string) (*types.Snapshot, error)
+	ModifySnapshot(ctx context.Context, snapshotID, description, retentionDuration string) error
+}
+
+type SnapshotAssign interface {
+	InterfaceSnapAssignment() SnapshotInterface
+}
+
+type SnapshotWrapper struct {
+	Snapshot *Snapshot
+}
+
+func (snap *Snapshot) InterfaceSnapAssignment() *Snapshot {
+	return snap
+}
+
+func (snap SnapshotWrapper) InterfaceSnapAssignment() SnapshotInterface {
+	return snap.Snapshot.InterfaceSnapAssignment()
+
+}
+
+// NewSnapshot function returns snapshot
 func NewSnapshot(client *Client) *Snapshot {
 	return &Snapshot{client}
 }
@@ -66,7 +97,7 @@ func (s *Snapshot) CreateSnapshot(ctx context.Context, storageResourceID, snapsh
 	return s.CreateSnapshotWithFsAccesType(ctx, storageResourceID, snapshotName, description, retentionDuration, BlockAccessType)
 }
 
-//CreateSnapshotWithFsAccesType - Creates snashot with FsAccess type
+// CreateSnapshotWithFsAccesType - Creates snashot with FsAccess type
 func (s *Snapshot) CreateSnapshotWithFsAccesType(ctx context.Context, storageResourceID, snapshotName, description, retentionDuration string, filesystemAccessType FilesystemAccessType) (*types.Snapshot, error) {
 	var createSnapshot types.CreateSnapshotParam
 	if len(storageResourceID) == 0 {
@@ -102,7 +133,7 @@ func (s *Snapshot) CreateSnapshotWithFsAccesType(ctx context.Context, storageRes
 	return snapshotResp, nil
 }
 
-//DeleteFilesystemAsSnapshot - Delete Snapshots acting as filesystem on array
+// DeleteFilesystemAsSnapshot - Delete Snapshots acting as filesystem on array
 func (s *Snapshot) DeleteFilesystemAsSnapshot(ctx context.Context, snapshotID string, sourceFs *types.Filesystem) error {
 	log := util.GetRunIDLogger(ctx)
 	deleteSourceFs := false
@@ -191,7 +222,7 @@ func (s *Snapshot) ListSnapshots(ctx context.Context, startToken int, maxEntries
 	return snapResp.Snapshots, nextToken, nil
 }
 
-//FindSnapshotByName - To find snapshot using snapshot-name
+// FindSnapshotByName - To find snapshot using snapshot-name
 func (s *Snapshot) FindSnapshotByName(ctx context.Context, snapshotName string) (*types.Snapshot, error) {
 	log := util.GetRunIDLogger(ctx)
 	snapshotName, err := util.ValidateResourceName(snapshotName, api.MaxResourceNameLength)
@@ -210,7 +241,7 @@ func (s *Snapshot) FindSnapshotByName(ctx context.Context, snapshotName string) 
 	return snapshotResp, nil
 }
 
-//FindSnapshotByID - To find snapshot using snapshot-id
+// FindSnapshotByID - To find snapshot using snapshot-id
 func (s *Snapshot) FindSnapshotByID(ctx context.Context, snapshotID string) (*types.Snapshot, error) {
 	log := util.GetRunIDLogger(ctx)
 	if snapshotID == "" {
@@ -228,7 +259,7 @@ func (s *Snapshot) FindSnapshotByID(ctx context.Context, snapshotID string) (*ty
 	return snapshotResp, nil
 }
 
-//ModifySnapshotAutoDeleteParameter - Modify Snapshot (currently used to disable auto-delete parameter)
+// ModifySnapshotAutoDeleteParameter - Modify Snapshot (currently used to disable auto-delete parameter)
 func (s *Snapshot) ModifySnapshotAutoDeleteParameter(ctx context.Context, snapshotID string) error {
 	log := util.GetRunIDLogger(ctx)
 	if snapshotID == "" {
@@ -248,7 +279,7 @@ func (s *Snapshot) ModifySnapshotAutoDeleteParameter(ctx context.Context, snapsh
 	return nil
 }
 
-//CopySnapshot - Creates a copy of the source snapshot which can be used for NFS export, and returns the ID of the copy snapshot
+// CopySnapshot - Creates a copy of the source snapshot which can be used for NFS export, and returns the ID of the copy snapshot
 func (s *Snapshot) CopySnapshot(ctx context.Context, sourceSnapshotID, name string) (*types.Snapshot, error) {
 	if name == "" {
 		return nil, errors.New("Snapshot Name cannot be empty")
@@ -277,7 +308,7 @@ func (s *Snapshot) CopySnapshot(ctx context.Context, sourceSnapshotID, name stri
 	return snapResp, nil
 }
 
-//ModifySnapshot - Modify Snapshot's description and retention duration parameters
+// ModifySnapshot - Modify Snapshot's description and retention duration parameters
 func (s *Snapshot) ModifySnapshot(ctx context.Context, snapshotID, description, retentionDuration string) error {
 	if snapshotID == "" {
 		return errors.New("snapshot ID cannot be empty")
