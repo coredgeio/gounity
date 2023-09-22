@@ -16,7 +16,7 @@ package gounity
 
 const (
 	//LunDisplayFields to display the Volume fields
-	LunDisplayFields = "id,name,description,type,wwn,sizeTotal,sizeUsed,sizeAllocated,hostAccess,pool,tieringPolicy,ioLimitPolicy,isThinEnabled,isDataReductionEnabled,isThinClone,parentSnap,originalParentLun?fields,health"
+	LunDisplayFields = "id,name,description,type,wwn,sizeTotal,sizeUsed,sizeAllocated,hostAccess,pool,tieringPolicy,ioLimitPolicy.name,isThinEnabled,isDataReductionEnabled,isThinClone,parentSnap,originalParentLun?fields,health"
 
 	//FileSystemDisplayFields to display the File System fields
 	FileSystemDisplayFields = "id,name,description,type,sizeTotal,isThinEnabled,isDataReductionEnabled,pool,nasServer,storageResource,nfsShare?fields,cifsShare,tieringPolicy,hostIOSize,health"
@@ -52,7 +52,7 @@ const (
 	FcPortDisplayFields = "wwn"
 
 	//HostIOLimitFields to display host IO limit fields
-	HostIOLimitFields = "id,name,description"
+	HostIOLimitFields = "id,name,description,type,ioLimitRuleSettings.maxIOPS,ioLimitRuleSettings.maxKBPS,ioLimitRuleSettings.maxIOPSDensity,ioLimitRuleSettings.maxKBPSDensity"
 
 	//IscsiIPFields to display Iscsi IP fields
 	IscsiIPFields = "id,ipAddress,type"

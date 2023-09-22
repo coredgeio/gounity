@@ -126,6 +126,12 @@ func findFilesystemTest(t *testing.T) {
 		t.Fatalf("Find filesystem by name failed: %v", err)
 	}
 
+	// filesystem name is unique to NasServer and not array, so need to filter using both fsName and nasServerName
+	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsName, nasServerName)
+	if err != nil {
+		t.Fatalf("Find filesystem by name and nasServer failed: %v", err)
+	}
+
 	filesystem, err = testConf.fileAPI.FindFilesystemByID(ctx, filesystem.FileContent.ID)
 	if err != nil {
 		t.Fatalf("Find filesystem by Id failed: %v", err)
@@ -159,6 +165,27 @@ func findFilesystemTest(t *testing.T) {
 		t.Fatalf("Find filesystem by Resource Id - Negative case failed")
 	}
 
+	//Test case: GET using invalid fsName/nasServerName or both
+	nasServerNameTemp := "invalid_nas_server_name"
+
+	// Invalid nasServerName
+	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsName, nasServerNameTemp)
+	if err != nil {
+		t.Fatalf("Find filesystem by fsName and invalid nasServer - Negative case failed: %v", err)
+	}
+
+	// Invalid fsName
+	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsNameTemp, nasServerName)
+	if err != nil {
+		t.Fatalf("Find filesystem by invalid fsName and nasServer - Negative case failed: %v", err)
+	}
+
+	// Invalid nasServerName and fsName
+	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsNameTemp, nasServerNameTemp)
+	if err != nil {
+		t.Fatalf("Find filesystem by invalid fsName and invalid nasServer - Negative case failed: %v", err)
+	}
+
 	//Test case :  GET using empty fsName/ID
 	fsNameTemp = ""
 
@@ -175,6 +202,27 @@ func findFilesystemTest(t *testing.T) {
 	_, err = testConf.fileAPI.GetFilesystemIDFromResID(ctx, fsNameTemp)
 	if err == nil {
 		t.Fatalf("Find filesystem by Resource Id failed: %v", err)
+	}
+
+	//Test case: GET using empty fsName/nasServerName or both
+	nasServerNameTemp = ""
+
+	// Invalid nasServerName
+	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsName, nasServerNameTemp)
+	if err != nil {
+		t.Fatalf("Find filesystem by fsName and empty nasServer - Negative case failed: %v", err)
+	}
+
+	// Invalid fsName
+	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsNameTemp, nasServerName)
+	if err != nil {
+		t.Fatalf("Find filesystem by empty fsName and nasServer - Negative case failed: %v", err)
+	}
+
+	// Invalid nasServerName and fsName
+	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsNameTemp, nasServerNameTemp)
+	if err != nil {
+		t.Fatalf("Find filesystem by empty fsName and empty nasServer - Negative case failed: %v", err)
 	}
 
 	fmt.Println("Find Filesystem test successul")
