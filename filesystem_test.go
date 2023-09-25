@@ -122,7 +122,7 @@ func findFilesystemTest(t *testing.T) {
 
 	fmt.Println("Begin - Find Filesystem Test")
 
-	nasServerName := "Phoenix_MULTI_DNS"
+	nasServerName := "Phoenix_NFS_noDNS"
 	// filesystem name is unique to NasServer and not array, so need to filter using both fsName and nasServerName
 	filesystem, err := testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsName, nasServerName)
 	if err != nil {
