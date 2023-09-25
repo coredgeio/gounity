@@ -14,11 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dell/gounity/util"
-	"github.com/prometheus/common/log"
-
 	"github.com/dell/gounity/api"
 	"github.com/dell/gounity/types"
+	"github.com/dell/gounity/util"
 )
 
 // Filesystem structure
@@ -90,6 +88,7 @@ func (f *Filesystem) FindFilesystemByName(ctx context.Context, filesystemName st
 // FindFileSystemByNameAndNasServer - Find the Filesystem by it's name and nasServer name as FileSystem is unique to nasServer and not Unity Array.
 // If the Filesystem is not found, an error will be returned.
 func (f *Filesystem) FindFileSystemByNameAndNasServer(ctx context.Context, filesystemName string, nasServerName string) (*types.Filesystem, error) {
+	log := util.GetRunIDLogger(ctx)
 	if len(filesystemName) == 0 {
 		return nil, errors.New("Filesystem Name shouldn't be empty")
 	}
@@ -98,7 +97,7 @@ func (f *Filesystem) FindFileSystemByNameAndNasServer(ctx context.Context, files
 	}
 	fileSystemResp := &types.Filesystem{}
 	filter := fmt.Sprintf("(name eq '%s') AND (nasServer.name eq '%s')", filesystemName, nasServerName)
-	log.info("filter query: ", filter)
+	log.Info("filter query: ", filter)
 	queryURI := fmt.Sprintf(api.UnityInstancesFilter, api.FileSystemAction, url.QueryEscape(filter))
 	log.Info("GetMetricsCollection: ", queryURI)
 	err := f.client.executeWithRetryAuthenticate(ctx, http.MethodGet, queryURI, nil, fileSystemResp)
@@ -109,7 +108,7 @@ func (f *Filesystem) FindFileSystemByNameAndNasServer(ctx context.Context, files
 		}
 		return nil, err
 	}
-	log.info("File System Response: ", fileSystemResp)
+	log.Info("File System Response: ", fileSystemResp)
 	return fileSystemResp, nil
 }
 
