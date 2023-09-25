@@ -285,6 +285,7 @@ type FileContent struct {
 	ID                     string        `json:"id"`
 	Name                   string        `json:"name,omitempty"`
 	SizeTotal              uint64        `json:"sizeTotal,omitempty"`
+	SizeUsed               uint64        `json:"sizeUsed,omitempty"`
 	Description            string        `json:"description,omitempty"`
 	Type                   int           `json:"type,omitempty"`
 	Format                 int           `json:"format,omitempty"`

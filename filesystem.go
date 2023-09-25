@@ -10,10 +10,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/dell/gounity/util"
+	"github.com/prometheus/common/log"
 
 	"github.com/dell/gounity/api"
 	"github.com/dell/gounity/types"
@@ -82,6 +84,32 @@ func (f *Filesystem) FindFilesystemByName(ctx context.Context, filesystemName st
 		}
 		return nil, err
 	}
+	return fileSystemResp, nil
+}
+
+// FindFileSystemByNameAndNasServer - Find the Filesystem by it's name and nasServer name as FileSystem is unique to nasServer and not Unity Array.
+// If the Filesystem is not found, an error will be returned.
+func (f *Filesystem) FindFileSystemByNameAndNasServer(ctx context.Context, filesystemName string, nasServerName string) (*types.Filesystem, error) {
+	if len(filesystemName) == 0 {
+		return nil, errors.New("Filesystem Name shouldn't be empty")
+	}
+	if len(nasServerName) == 0 {
+		return nil, errors.New("NasServer Name shouldn't be empty")
+	}
+	fileSystemResp := &types.Filesystem{}
+	filter := fmt.Sprintf("(name eq '%s') AND (nasServer.name eq '%s')", filesystemName, nasServerName)
+	log.info("filter query: ", filter)
+	queryURI := fmt.Sprintf(api.UnityInstancesFilter, api.FileSystemAction, url.QueryEscape(filter))
+	log.Info("GetMetricsCollection: ", queryURI)
+	err := f.client.executeWithRetryAuthenticate(ctx, http.MethodGet, queryURI, nil, fileSystemResp)
+
+	if err != nil {
+		if strings.Contains(err.Error(), FilesystemNotFoundErrorCode) {
+			return nil, ErrorFilesystemNotFound
+		}
+		return nil, err
+	}
+	log.info("File System Response: ", fileSystemResp)
 	return fileSystemResp, nil
 }
 
