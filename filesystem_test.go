@@ -122,16 +122,16 @@ func findFilesystemTest(t *testing.T) {
 
 	fmt.Println("Begin - Find Filesystem Test")
 
-	filesystem, err := testConf.fileAPI.FindFilesystemByName(ctx, fsName)
-	if err != nil {
-		t.Fatalf("Find filesystem by name failed: %v", err)
-	}
-
-	nasServerName := "CCTEST"
+	nasServerName := "Phoenix_MULTI_DNS"
 	// filesystem name is unique to NasServer and not array, so need to filter using both fsName and nasServerName
-	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsName, nasServerName)
+	filesystem, err := testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsName, nasServerName)
 	if err != nil {
 		t.Fatalf("Find filesystem by name and nasServer failed: %v", err)
+	}
+
+	filesystem, err = testConf.fileAPI.FindFilesystemByName(ctx, fsName)
+	if err != nil {
+		t.Fatalf("Find filesystem by name failed: %v", err)
 	}
 
 	filesystem, err = testConf.fileAPI.FindFilesystemByID(ctx, filesystem.FileContent.ID)
