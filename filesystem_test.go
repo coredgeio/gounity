@@ -22,6 +22,7 @@ import (
 )
 
 var fsName string
+var nasServerName string
 var fsID string
 var nfsShareName string
 var nfsShareID string
@@ -126,6 +127,7 @@ func findFilesystemTest(t *testing.T) {
 		t.Fatalf("Find filesystem by name failed: %v", err)
 	}
 
+	nasServerName := "CCTEST"
 	// filesystem name is unique to NasServer and not array, so need to filter using both fsName and nasServerName
 	filesystem, err = testConf.fileAPI.FindFileSystemByNameAndNasServer(ctx, fsName, nasServerName)
 	if err != nil {
