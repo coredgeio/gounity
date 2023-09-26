@@ -101,7 +101,7 @@ func (f *Filesystem) FindFileSystemByNameAndNasServer(ctx context.Context, files
 
 	filter := fmt.Sprintf("(name eq \"%s\") AND (nasServer.name eq \"%s\")", filesystemName, nasServerName)
 	log.Info("filter query: ", filter)
-	queryURI := fmt.Sprintf(api.UnityInstancesFilter, api.FileSystemAction, url.QueryEscape(filter))
+	queryURI := fmt.Sprintf(api.UnityInstancesFilterWithFields, api.FileSystemAction, url.QueryEscape(filter), FileSystemDisplayFields)
 	log.Info("Find FileSystem queryURI: ", queryURI)
 	result := &types.ListFilesystem{}
 	fileSystemResp := &types.Filesystem{}

@@ -94,6 +94,9 @@ const (
 	//UnityInstancesFilter does Unity Instance Filter
 	UnityInstancesFilter = UnityAPIInstanceTypeResources + "?filter=%s"
 
+	//UnityInstancesFilterWithFields does unity Instance Filter and specifies the fields to be displayed
+	UnityInstancesFilterWithFields = UnityInstancesFilter + "&fields=%s"
+
 	UnityMetric              = "metric"
 	UnityMetricQueryResult   = "metricQueryResult"
 	UnityMetricRealTimeQuery = "metricRealTimeQuery"
