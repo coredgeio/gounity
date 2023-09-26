@@ -52,7 +52,7 @@ const (
 	FcPortDisplayFields = "wwn"
 
 	//HostIOLimitFields to display host IO limit fields
-	HostIOLimitFields = "id,name,description,type,ioLimitRuleSettings.maxIOPS,ioLimitRuleSettings.maxKBPS,ioLimitRuleSettings.maxIOPSDensity,ioLimitRuleSettings.maxKBPSDensity"
+	HostIOLimitFields = "id,name,description,type,ioLimitRuleSettings"
 
 	//IscsiIPFields to display Iscsi IP fields
 	IscsiIPFields = "id,ipAddress,type"

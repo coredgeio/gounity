@@ -271,8 +271,20 @@ type IoLimitPolicy struct {
 
 // IoLimitPolicyContent struct to capture IoLimitPolicyContent parameters
 type IoLimitPolicyContent struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID                  string               `json:"id"`
+	Name                string               `json:"name"`
+	Type                int                  `json:"type"`
+	IoLimitRuleSettings []IoLimitRuleSetting `json:"ioLimitRuleSettings,omitempty"`
+}
+
+// IoLimitRuleSetting struct to capture IoLimitRuleSetting parameters
+type IoLimitRuleSetting struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	MaxIOPS        int64  `json:"maxIOPS,omitempty"`
+	MaxKBPS        int64  `json:"maxKBPS,omitempty"`
+	MaxIOPSDensity int64  `json:"maxIOPSDensity,omitempty"`
+	MaxKBPSDensity int64  `json:"maxKBPSDensity,omitempty"`
 }
 
 // ListFilesystem struct to capture filesystem list

@@ -227,7 +227,7 @@ func findFilesystemTest(t *testing.T) {
 		t.Fatalf("Find filesystem by empty fsName and empty nasServer - Negative case failed: %v", err)
 	}
 
-	fmt.Println("Find Filesystem test successul")
+	fmt.Println("Find Filesystem test successful")
 }
 
 func createNfsShareTest(t *testing.T) {
