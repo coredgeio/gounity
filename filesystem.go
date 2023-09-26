@@ -55,6 +55,9 @@ const (
 // ErrorFilesystemNotFound stores error for filesystem not found
 var ErrorFilesystemNotFound = errors.New("Unable to find filesystem")
 
+// ErrorFilesystemNotFoundOnNasserver stores error for filesystem not found on specified nas server
+var ErrorFilesystemNotFoundOnNasserver = errors.New("Unable to find filesystem on this nas server")
+
 // FilesystemNotFoundErrorCode stores error code for filesystem not found
 var FilesystemNotFoundErrorCode = "0x7d13005"
 
@@ -95,19 +98,24 @@ func (f *Filesystem) FindFileSystemByNameAndNasServer(ctx context.Context, files
 	if len(nasServerName) == 0 {
 		return nil, errors.New("NasServer Name shouldn't be empty")
 	}
-	fileSystemResp := &types.Filesystem{}
+
 	filter := fmt.Sprintf("(name eq \"%s\") AND (nasServer.name eq \"%s\")", filesystemName, nasServerName)
 	log.Info("filter query: ", filter)
 	queryURI := fmt.Sprintf(api.UnityInstancesFilter, api.FileSystemAction, url.QueryEscape(filter))
-	log.Info("GetMetricsCollection: ", queryURI)
-	err := f.client.executeWithRetryAuthenticate(ctx, http.MethodGet, queryURI, nil, fileSystemResp)
+	log.Info("Find FileSystem queryURI: ", queryURI)
+	result := &types.ListFilesystem{}
+	fileSystemResp := &types.Filesystem{}
+	err := f.client.executeWithRetryAuthenticate(ctx, http.MethodGet, queryURI, nil, result)
 
-	if err != nil {
-		if strings.Contains(err.Error(), FilesystemNotFoundErrorCode) {
-			return nil, ErrorFilesystemNotFound
-		}
-		return nil, err
+	// Checking for size of Filesystems as we are filtering the filesystem instances
+	// and chances are that filter can return 0 values
+	if err == nil && len(result.Filesystems) == 0 {
+		return nil, ErrorFilesystemNotFoundOnNasserver
 	}
+
+	// Since the fileSystem is unique to nas server and filtering is happening considering
+	// that there will always be only single entry in the array
+	fileSystemResp = &result.Filesystems[0]
 	log.Info("File System Response: ", fileSystemResp)
 	return fileSystemResp, nil
 }

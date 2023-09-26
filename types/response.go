@@ -275,6 +275,11 @@ type IoLimitPolicyContent struct {
 	Name string `json:"name"`
 }
 
+// ListFilesystem struct to capture filesystem list
+type ListFilesystem struct {
+	Filesystems []Filesystem `json:"entries"`
+}
+
 // Filesystem struct to capture filesystem object
 type Filesystem struct {
 	FileContent FileContent `json:"content"`
