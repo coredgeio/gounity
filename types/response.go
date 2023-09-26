@@ -66,7 +66,7 @@ type VolumeContent struct {
 	Type                   int                  `json:"type,omitempty"`
 	SizeTotal              uint64               `json:"sizeTotal,omitempty"`
 	SizeUsed               uint64               `json:"sizeUsed,omitempty"`
-	SizeAllocated          uint64               `json:"sizeAllocated,omitempty"`
+	SizeAllocated          uint64               `json:"sizeAllocated"`
 	HostAccessResponse     []HostAccessResponse `json:"hostAccess,omitempty"`
 	Wwn                    string               `json:"wwn,omitempty"`
 	Pool                   Pool                 `json:"pool,omitempty"`
