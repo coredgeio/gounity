@@ -16,7 +16,7 @@ package gounity
 
 const (
 	//LunDisplayFields to display the Volume fields
-	LunDisplayFields = "id,name,description,type,wwn,sizeTotal,sizeUsed,sizeAllocated,hostAccess,pool,tieringPolicy,ioLimitPolicy,isThinEnabled,isDataReductionEnabled,isThinClone,parentSnap,originalParentLun?fields,health"
+	LunDisplayFields = "id,name,description,type,wwn,sizeTotal,sizeUsed,sizeAllocated,hostAccess,pool,tieringPolicy,ioLimitPolicy.name,isThinEnabled,isDataReductionEnabled,isThinClone,parentSnap,originalParentLun?fields,health"
 
 	//FileSystemDisplayFields to display the File System fields
 	FileSystemDisplayFields = "id,name,description,type,sizeTotal,sizeUsed,isThinEnabled,isDataReductionEnabled,pool,nasServer,storageResource,nfsShare?fields,cifsShare,tieringPolicy,hostIOSize,health"
