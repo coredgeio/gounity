@@ -29,6 +29,14 @@ var (
 	storageResourceID string
 	snapshotID        string
 	nfsShareIDBySnap  string
+	noAccessHosts     string
+	roHosts           string
+	rwHosts           string
+	roRootHosts       string
+	rwRootHosts       string
+	exportOption      int
+	hostIDs           []string
+	accessType        AccessType
 	ctx               context.Context
 )
 
@@ -179,7 +187,7 @@ func findFilesystemTest(t *testing.T) {
 func createNfsShareTest(t *testing.T) {
 	fmt.Println("Begin - Create NFS Share Test")
 
-	_, err := testConf.fileAPI.CreateNFSShare(ctx, nfsShareName, NFSShareLocalPath, fsID, NoneDefaultAccess)
+	_, err := testConf.fileAPI.CreateNFSShare(ctx, nfsShareName, NFSShareLocalPath, fsID, NoneDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDs, accessType)
 	if err != nil {
 		t.Fatalf("Create NFS Share failed: %v", err)
 	}
@@ -201,19 +209,19 @@ func createNfsShareTest(t *testing.T) {
 
 	// Test case :  Create using invalid fsID
 	fsIDTemp := "dummy-fs-1"
-	_, err = testConf.fileAPI.CreateNFSShare(ctx, nfsShareName, NFSShareLocalPath, fsIDTemp, NoneDefaultAccess)
+	_, err = testConf.fileAPI.CreateNFSShare(ctx, nfsShareName, NFSShareLocalPath, fsIDTemp, NoneDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDs, accessType)
 	if err == nil {
 		t.Fatalf("Create NFS Share with invalid fsID - Negative case failed")
 	}
 
 	fsIDTemp = ""
-	_, err = testConf.fileAPI.CreateNFSShare(ctx, nfsShareName, NFSShareLocalPath, fsIDTemp, NoneDefaultAccess)
+	_, err = testConf.fileAPI.CreateNFSShare(ctx, nfsShareName, NFSShareLocalPath, fsIDTemp, NoneDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDs, accessType)
 	if err == nil {
 		t.Fatalf("Create NFS Share with empty fsID - Negative case failed")
 	}
 
 	nfsShareNameTemp := ""
-	_, err = testConf.fileAPI.CreateNFSShare(ctx, nfsShareNameTemp, NFSShareLocalPath, fsID, NoneDefaultAccess)
+	_, err = testConf.fileAPI.CreateNFSShare(ctx, nfsShareNameTemp, NFSShareLocalPath, fsID, NoneDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDs, accessType)
 	if err == nil {
 		t.Fatalf("Create NFS Share with empty share name - Negative case failed")
 	}
@@ -293,22 +301,22 @@ func modifyNfsShareTest(t *testing.T) {
 	var hostIDList []string
 	hostIDList = append(hostIDList, host.HostContent.ID)
 
-	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, hostIDList, ReadOnlyAccessType)
+	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, ReadOnlyDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDList, ReadOnlyAccessType)
 	if err != nil {
 		t.Fatalf("Modify NFS Share by name failed: %v", err)
 	}
 
-	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, hostIDList, ReadWriteAccessType)
+	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, ReadWriteDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDList, ReadWriteAccessType)
 	if err != nil {
 		t.Fatalf("Modify NFS Share by name failed: %v", err)
 	}
 
-	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, hostIDList, ReadOnlyRootAccessType)
+	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, ReadOnlyRootDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDList, ReadOnlyRootAccessType)
 	if err != nil {
 		t.Fatalf("Modify NFS Share by name failed: %v", err)
 	}
 
-	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, hostIDList, ReadWriteRootAccessType)
+	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsID, nfsShareID, ReadWriteRootDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDList, ReadWriteRootAccessType)
 	if err != nil {
 		t.Fatalf("Modify NFS Share by name failed: %v", err)
 	}
@@ -336,13 +344,13 @@ func modifyNfsShareTest(t *testing.T) {
 	}
 
 	fsIDTemp := "dummy-fs-1"
-	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsIDTemp, nfsShareID, hostIDList, ReadWriteRootAccessType)
+	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsIDTemp, nfsShareID, ReadWriteRootDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDList, ReadWriteRootAccessType)
 	if err == nil {
 		t.Fatalf("Modify NFS Share with invalid fs ID - Negative case Failed")
 	}
 
 	fsIDTemp = ""
-	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsIDTemp, nfsShareID, hostIDList, ReadWriteRootAccessType)
+	err = testConf.fileAPI.ModifyNFSShareHostAccess(ctx, fsIDTemp, nfsShareID, ReadWriteRootDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts, exportOption, hostIDList, ReadWriteRootAccessType)
 	if err == nil {
 		t.Fatalf("Modify NFS Share with empty fs ID - Negative case Failed")
 	}

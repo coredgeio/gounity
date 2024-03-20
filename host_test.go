@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dell/gounity/api"
-	"github.com/dell/gounity/types"
+	"github.com/coredgeio/gounity/api"
+	"github.com/coredgeio/gounity/types"
 )
 
 var (

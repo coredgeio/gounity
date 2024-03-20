@@ -14,7 +14,7 @@
 
 package api
 
-import "github.com/dell/gounity/types"
+import "github.com/coredgeio/gounity/types"
 
 // InitiatorType constants
 const (

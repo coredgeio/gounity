@@ -29,8 +29,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dell/gounity/types"
-	"github.com/dell/gounity/util"
+	"github.com/coredgeio/gounity/types"
+	"github.com/coredgeio/gounity/util"
 )
 
 // Header Key constants
