@@ -1,4 +1,4 @@
-module github.com/dell/gounity
+module github.com/coredgeio/gounity
 
 go 1.22
 

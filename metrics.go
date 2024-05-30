@@ -18,9 +18,9 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/dell/gounity/api"
-	"github.com/dell/gounity/types"
-	"github.com/dell/gounity/util"
+	"github.com/coredgeio/gounity/api"
+	"github.com/coredgeio/gounity/types"
+	"github.com/coredgeio/gounity/util"
 )
 
 // Metrics structure

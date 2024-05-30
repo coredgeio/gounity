@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dell/gounity/util"
+	"github.com/coredgeio/gounity/util"
 
-	"github.com/dell/gounity/api"
-	"github.com/dell/gounity/types"
+	"github.com/coredgeio/gounity/api"
+	"github.com/coredgeio/gounity/types"
 )
 
 // Ipinterface structure

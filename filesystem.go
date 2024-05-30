@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dell/gounity/util"
+	"github.com/coredgeio/gounity/util"
 
-	"github.com/dell/gounity/api"
-	"github.com/dell/gounity/types"
+	"github.com/coredgeio/gounity/api"
+	"github.com/coredgeio/gounity/types"
 )
 
 // Filesystem structure
@@ -115,6 +115,202 @@ func (f *Filesystem) GetFilesystemIDFromResID(ctx context.Context, filesystemRes
 		return "", fmt.Errorf("get filesystem Id for %s failed with error: %v", filesystemResID, err)
 	}
 	return fileSystemResp.StorageResourceContent.Filesystem.ID, nil
+}
+
+// CreateFilesystemWithNFSShare - Create a new filesystem with NFS share on the array
+func (f *Filesystem) CreateFilesystemWithNFSShare(ctx context.Context, name, storagepool, description, nasServer,
+	nfsShareName, path string, size uint64, tieringPolicy,
+	hostIOSize, supportedProtocol int, isThinEnabled, isDataReductionEnabled bool,
+	nfsShareDefaultAccess NFSShareDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts,
+	rwRootHosts string, exportOption int, hostIDs []string, accessType AccessType) (*types.Filesystem, error) {
+	log := util.GetRunIDLogger(ctx)
+	if name == "" {
+		return nil, errors.New("filesystem name should not be empty")
+	}
+
+	if len(name) > FsNameMaxLength {
+		return nil, fmt.Errorf("filesystem name %s should not exceed %d characters", name, FsNameMaxLength)
+	}
+
+	poolAPI := NewStoragePool(f.client)
+	pool, err := poolAPI.FindStoragePoolByID(ctx, storagepool)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get PoolID (%s) Error:%v", storagepool, err)
+	}
+
+	storagePool := types.StoragePoolID{
+		PoolID: storagepool,
+	}
+
+	fileEventSettings := types.FileEventSettings{
+		IsCIFSEnabled: false, // Set to false to disable CIFS
+		IsNFSEnabled:  true,  // Set to true to enable NFS alone
+	}
+
+	nas := types.NasServerID{
+		NasServerID: nasServer,
+	}
+
+	fsParams := types.FsParameters{
+		StoragePool:       &storagePool,
+		Size:              size,
+		SupportedProtocol: supportedProtocol,
+		HostIOSize:        hostIOSize,
+		NasServer:         &nas,
+		FileEventSettings: fileEventSettings,
+	}
+
+	volAPI := NewVolume(f.client)
+	thinProvisioningLicenseInfoResp, err := volAPI.isFeatureLicensed(ctx, ThinProvisioning)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get license info for feature: %s", ThinProvisioning)
+	}
+
+	dataReductionLicenseInfoResp, err := volAPI.isFeatureLicensed(ctx, DataReduction)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get license info for feature: %s", DataReduction)
+	}
+
+	if thinProvisioningLicenseInfoResp.LicenseInfoContent.IsInstalled && thinProvisioningLicenseInfoResp.LicenseInfoContent.IsValid {
+		fsParams.IsThinEnabled = strconv.FormatBool(isThinEnabled)
+	} else if isThinEnabled == true {
+		return nil, fmt.Errorf("thin provisioning is not supported on array and hence cannot create Filesystem")
+	}
+
+	if dataReductionLicenseInfoResp.LicenseInfoContent.IsInstalled && dataReductionLicenseInfoResp.LicenseInfoContent.IsValid {
+		fsParams.IsDataReductionEnabled = strconv.FormatBool(isDataReductionEnabled)
+	} else if isDataReductionEnabled == true {
+		return nil, fmt.Errorf("data reduction is not supported on array and hence cannot create Filesystem")
+	}
+
+	if pool != nil && pool.StoragePoolContent.PoolFastVP.Status != 0 {
+		log.Debug("FastVP is enabled")
+		fastVPParameters := types.FastVPParameters{
+			TieringPolicy: tieringPolicy,
+		}
+		fsParams.FastVPParameters = &fastVPParameters
+	} else {
+		log.Debug("FastVP is not enabled")
+		if tieringPolicy != 0 {
+			return nil, fmt.Errorf("fastVP is not enabled and requested tiering policy is: %d ", tieringPolicy)
+		}
+	}
+
+	nfsShareParam := types.NFSShareParameters{
+		DefaultAccess:                 string(nfsShareDefaultAccess),
+		NoAccessHostsString:           noAccessHosts,
+		ReadOnlyHostsString:           roHosts,
+		ReadWriteHostsString:          rwHosts,
+		ReadOnlyRootAccessHostsString: roRootHosts,
+		ReadWriteRootHostsString:      rwRootHosts,
+		ExportOption:                  exportOption,
+	}
+
+	hostsIdsContent := []types.HostIDContent{}
+	for _, hostID := range hostIDs {
+		hostIDContent := types.HostIDContent{
+			ID: hostID,
+		}
+		hostsIdsContent = append(hostsIdsContent, hostIDContent)
+	}
+
+	if accessType == ReadOnlyAccessType {
+		nfsShareParam.ReadOnlyHosts = &hostsIdsContent
+	} else if accessType == ReadWriteAccessType {
+		nfsShareParam.ReadWriteHosts = &hostsIdsContent
+	} else if accessType == ReadOnlyRootAccessType {
+		nfsShareParam.ReadOnlyRootAccessHosts = &hostsIdsContent
+	} else if accessType == ReadWriteRootAccessType {
+		nfsShareParam.RootAccessHosts = &hostsIdsContent
+	}
+
+	nfsShareCreateReqParam := types.NFSShareCreateParam{
+		Name:               name,
+		Path:               path,
+		NFSShareParameters: &nfsShareParam,
+	}
+
+	nfsShares := []types.NFSShareCreateParam{nfsShareCreateReqParam}
+
+	fileReqParam := types.FsCreateParam{
+		Name:         name,
+		Description:  description,
+		FsParameters: &fsParams,
+		NFSShares:    &nfsShares,
+	}
+
+	fileResp := &types.Filesystem{}
+	err = f.client.executeWithRetryAuthenticate(ctx,
+		http.MethodPost, fmt.Sprintf(api.UnityAPIStorageResourceActionURI, api.CreateFSAction), fileReqParam, fileResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileResp, nil
+}
+
+// ModifyFilesystemWithNFSShare Modify filesystem to expand
+func (f *Filesystem) ModifyFilesystemWithNFSShare(ctx context.Context, filesystemID, nfsShareID string, newSize uint64,
+	nfsShareDefaultAccess NFSShareDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts,
+	rwRootHosts string, exportOption int, hostIDs []string, accessType AccessType) error {
+	log := util.GetRunIDLogger(ctx)
+	filesystem, err := f.FindFilesystemByID(ctx, filesystemID)
+	if err != nil {
+		return fmt.Errorf("unable to find filesystem Id %s. Error: %v", filesystemID, err)
+	}
+	if filesystem.FileContent.SizeTotal == newSize {
+		log.Infof("New Volume size (%d) is same as existing Volume size (%d).", newSize, filesystem.FileContent.SizeTotal)
+	} else if filesystem.FileContent.SizeTotal > newSize {
+		return fmt.Errorf("requested new capacity smaller than existing capacity")
+	}
+	fsExpandParams := types.FsExpandParameters{
+		Size: newSize,
+	}
+
+	nfsShareParam := types.NFSShareParameters{
+		DefaultAccess:                 string(nfsShareDefaultAccess),
+		NoAccessHostsString:           noAccessHosts,
+		ReadOnlyHostsString:           roHosts,
+		ReadWriteHostsString:          rwHosts,
+		ReadOnlyRootAccessHostsString: roRootHosts,
+		ReadWriteRootHostsString:      rwRootHosts,
+		ExportOption:                  exportOption,
+	}
+
+	hostsIdsContent := []types.HostIDContent{}
+	for _, hostID := range hostIDs {
+		hostIDContent := types.HostIDContent{
+			ID: hostID,
+		}
+		hostsIdsContent = append(hostsIdsContent, hostIDContent)
+	}
+
+	if accessType == ReadOnlyAccessType {
+		nfsShareParam.ReadOnlyHosts = &hostsIdsContent
+	} else if accessType == ReadWriteAccessType {
+		nfsShareParam.ReadWriteHosts = &hostsIdsContent
+	} else if accessType == ReadOnlyRootAccessType {
+		nfsShareParam.ReadOnlyRootAccessHosts = &hostsIdsContent
+	} else if accessType == ReadWriteRootAccessType {
+		nfsShareParam.RootAccessHosts = &hostsIdsContent
+	}
+
+	nfsShare := types.StorageResourceParam{
+		ID: nfsShareID,
+	}
+
+	nfsShareModifyContent := types.NFSShareModifyContent{
+		NFSShare:           &nfsShare,
+		NFSShareParameters: &nfsShareParam,
+	}
+	nfsSharesModifyContent := []types.NFSShareModifyContent{nfsShareModifyContent}
+
+	fsExpandReqParam := types.FsModifyWithNFSShareParam{
+		FsParameters:           &fsExpandParams,
+		NFSSharesModifyContent: &nfsSharesModifyContent,
+	}
+
+	return f.client.executeWithRetryAuthenticate(ctx, http.MethodPost, fmt.Sprintf(api.UnityModifyFilesystemURI, filesystem.FileContent.StorageResource.ID), fsExpandReqParam, nil)
 }
 
 // CreateFilesystem - Create a new filesystem on the array
@@ -257,7 +453,8 @@ func (f *Filesystem) updateDescription(ctx context.Context, filesystemID, descri
 }
 
 // CreateNFSShare - Create NFS Share for a File system
-func (f *Filesystem) CreateNFSShare(ctx context.Context, name, path, filesystemID string, nfsShareDefaultAccess NFSShareDefaultAccess) (*types.Filesystem, error) {
+func (f *Filesystem) CreateNFSShare(ctx context.Context, name, path, filesystemID string, nfsShareDefaultAccess NFSShareDefaultAccess,
+	noAccessHosts, roHosts, rwHosts, roRootHosts, rwRootHosts string, exportOption int, hostIDs []string, accessType AccessType) (*types.Filesystem, error) {
 	if len(filesystemID) == 0 {
 		return nil, errors.New("Filesystem Id cannot be empty")
 	}
@@ -269,7 +466,31 @@ func (f *Filesystem) CreateNFSShare(ctx context.Context, name, path, filesystemI
 	resourceID := filesystemResp.FileContent.StorageResource.ID
 
 	nfsShareParam := types.NFSShareParameters{
-		DefaultAccess: string(nfsShareDefaultAccess),
+		DefaultAccess:                 string(nfsShareDefaultAccess),
+		NoAccessHostsString:           noAccessHosts,
+		ReadOnlyHostsString:           roHosts,
+		ReadWriteHostsString:          rwHosts,
+		ReadOnlyRootAccessHostsString: roRootHosts,
+		ReadWriteRootHostsString:      rwRootHosts,
+		ExportOption:                  exportOption,
+	}
+
+	hostsIdsContent := []types.HostIDContent{}
+	for _, hostID := range hostIDs {
+		hostIDContent := types.HostIDContent{
+			ID: hostID,
+		}
+		hostsIdsContent = append(hostsIdsContent, hostIDContent)
+	}
+
+	if accessType == ReadOnlyAccessType {
+		nfsShareParam.ReadOnlyHosts = &hostsIdsContent
+	} else if accessType == ReadWriteAccessType {
+		nfsShareParam.ReadWriteHosts = &hostsIdsContent
+	} else if accessType == ReadOnlyRootAccessType {
+		nfsShareParam.ReadOnlyRootAccessHosts = &hostsIdsContent
+	} else if accessType == ReadWriteRootAccessType {
+		nfsShareParam.RootAccessHosts = &hostsIdsContent
 	}
 
 	nfsShareCreateReqParam := types.NFSShareCreateParam{
@@ -279,6 +500,7 @@ func (f *Filesystem) CreateNFSShare(ctx context.Context, name, path, filesystemI
 	}
 
 	nfsShares := []types.NFSShareCreateParam{nfsShareCreateReqParam}
+
 	filesystemModifyParam := types.FsModifyParameters{
 		NFSShares: &nfsShares,
 	}
@@ -348,7 +570,10 @@ func (f *Filesystem) FindNFSShareByID(ctx context.Context, nfsShareID string) (*
 }
 
 // ModifyNFSShareHostAccess - Modify the host access on NFS Share
-func (f *Filesystem) ModifyNFSShareHostAccess(ctx context.Context, filesystemID, nfsShareID string, hostIDs []string, accessType AccessType) error {
+func (f *Filesystem) ModifyNFSShareHostAccess(ctx context.Context, filesystemID, nfsShareID string,
+	nfsShareDefaultAccess NFSShareDefaultAccess, noAccessHosts, roHosts, rwHosts, roRootHosts,
+	rwRootHosts string, exportOption int, hostIDs []string, accessType AccessType) error {
+
 	log := util.GetRunIDLogger(ctx)
 	if len(filesystemID) == 0 {
 		return errors.New("Filesystem Id cannot be empty")
@@ -360,6 +585,16 @@ func (f *Filesystem) ModifyNFSShareHostAccess(ctx context.Context, filesystemID,
 	}
 	resourceID := filesystemResp.FileContent.StorageResource.ID
 
+	nfsShareParameters := types.NFSShareParameters{
+		DefaultAccess:                 string(nfsShareDefaultAccess),
+		NoAccessHostsString:           noAccessHosts,
+		ReadOnlyHostsString:           roHosts,
+		ReadWriteHostsString:          rwHosts,
+		ReadOnlyRootAccessHostsString: roRootHosts,
+		ReadWriteRootHostsString:      rwRootHosts,
+		ExportOption:                  exportOption,
+	}
+
 	hostsIdsContent := []types.HostIDContent{}
 	for _, hostID := range hostIDs {
 		hostIDContent := types.HostIDContent{
@@ -368,7 +603,6 @@ func (f *Filesystem) ModifyNFSShareHostAccess(ctx context.Context, filesystemID,
 		hostsIdsContent = append(hostsIdsContent, hostIDContent)
 	}
 
-	nfsShareParameters := types.NFSShareParameters{}
 	if accessType == ReadOnlyAccessType {
 		nfsShareParameters.ReadOnlyHosts = &hostsIdsContent
 	} else if accessType == ReadWriteAccessType {
